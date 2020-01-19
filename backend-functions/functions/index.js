@@ -134,8 +134,37 @@ app.post('/signup', (req, res) => {
       }
       return res.status(500).json({ error: err.code });
     });
+});
 
-  // TODO: validate data
+// Login
+app.post('/login', (req, res) => {
+  const user = {
+    email: req.body.email,
+    password: req.body.password
+  };
+
+  let errors = {};
+
+  if (isEmpty(user.email)) errors.email = 'Please enter your email address.';
+  if (isEmpty(user.password)) errors.password = 'Please enter your password.';
+
+  if (Object.keys(errors).length > 0) res.status(400).json(errors);
+
+  firebase
+    .auth()
+    .signInWithEmailAndPassword(user.email, user.password)
+    .then(data => data.user.getIdToken())
+    .then(token => {
+      res.json({ token });
+    })
+    .catch(err => {
+      console.error(err);
+      if (err.code === 'auth/wrong-password')
+        res
+          .status(403)
+          .json({ general: 'Wrong credentials, please try again.' });
+      return res.status(500).json({ error: err });
+    });
 });
 
 exports.api = functions.https.onRequest(app);
