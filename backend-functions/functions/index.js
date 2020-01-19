@@ -60,6 +60,17 @@ app.post('/scream', (req, res) => {
     });
 });
 
+const isEmpty = string => {
+  if (string.trim() === '') return true;
+  return false;
+};
+
+const isEmail = email => {
+  const regEx = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (email.match(regEx)) return true;
+  return false;
+};
+
 // Signup endpoint
 app.post('/signup', (req, res) => {
   const newUser = {
@@ -68,6 +79,24 @@ app.post('/signup', (req, res) => {
     confirmPassword: req.body.confirmPassword,
     handle: req.body.handle
   };
+
+  let errors = {};
+
+  if (isEmpty(newUser.email)) {
+    errors.email = 'Email field can not be empty';
+  } else if (!isEmail(newUser.email)) {
+    errors.email = 'Please provide a valid email';
+  }
+
+  if (isEmpty(newUser.password)) errors.password = 'Password can not be empty';
+
+  if (isEmpty(newUser.handle)) errors.handle = 'Handle field can not be empty';
+
+  if (newUser.password != newUser.confirmPassword)
+    errors.confirmPassword = 'Password and confirm password must match!';
+
+  if (Object.keys(errors).length > 0) res.status(400).json(errors);
+
   let token, userId;
   db.doc(`/users/${newUser.handle}`)
     .get()
