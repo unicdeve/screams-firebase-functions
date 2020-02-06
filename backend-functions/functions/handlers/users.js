@@ -249,7 +249,7 @@ exports.markNotificationsRead = (req, res) => {
   let batch = db.batch();
   req.body.forEach(notificationId => {
     const notification = db.doc(`/notifications/${notificationId}`);
-    batch.update(notification, { read, true });
+    batch.update(notification, { read: true });
   });
   batch
     .commit()
